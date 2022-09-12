@@ -1,0 +1,149 @@
+import React, { useCallback, useState } from "react";
+import { StyleSheet, Text, View, TextInput, ScrollView } from "react-native";
+
+import axios from "axios";
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+
+  textInput: {
+    borderBottomWidth: 3,
+    padding: 5,
+    marginVertical: 50,
+    backgroundColor: "#fff",
+    fontSize: 19,
+    fontWeight: "300",
+    borderRadius: 16,
+    borderBottomColor: "orange",
+    width: "80%",
+    alignSelf: "center",
+  },
+
+  state: {
+    color: "orange",
+    fontSize: 40,
+    fontWeight: "bold",
+  },
+
+  infoView: {
+    alignItems: "center",
+  },
+  tempText: {
+    fontSize: 45,
+    color: "black",
+    marginVertical: 10,
+  },
+  normal: {
+    fontSize: 22,
+    color: "black",
+    marginVertical: 5,
+    textAlign: "center",
+  },
+  death: {
+    color: "red",
+  },
+  recovered: {
+    color: "blue",
+  },
+  active: {
+    fontWeight: "bold",
+  },
+  update: {
+    color: "purple",
+    fontWeight: "bold",
+  },
+  total: {
+    color: "green",
+  },
+});
+
+const Covid = () => {
+  const [input, setInput] = useState("");
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchDataHandler = useCallback(() => {
+    setLoading(true);
+    setInput("");
+    axios({
+      method: "GET",
+      url: `https://api.covid19india.org/data.json`,
+    })
+      .then((res) => {
+        setData(res.data.statewise);
+      })
+      .catch((err) => {
+        console.dir(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  });
+
+  const particularState = (data, input) => {
+    let i = 0;
+    for (i = 0; i < data.length; i++) {
+      var state = data[i];
+      if (state.state == input) {
+        console.log(data[i]);
+        setData(data[i]);
+      }
+    }
+  };
+
+  return (
+    <ScrollView style={styles.root}>
+      <View>
+        <Text
+          style={{
+            marginTop: 60,
+            alignSelf: "center",
+            fontSize: 30,
+            fontWeight: "bold",
+            color: "orange",
+            fontFamily: "monospace",
+          }}
+        >
+          Covid Cases Tracker
+        </Text>
+
+        <TextInput
+          placeholder="Enter state name and press return..."
+          style={styles.textInput}
+          onChangeText={(text) => setInput(text)}
+          placeholderTextColor={"#000"}
+          onSubmitEditing={fetchDataHandler}
+          value={input}
+        />
+      </View>
+      {particularState(data, input)}
+      {data.statecode !== undefined ? (
+        <View style={styles.infoView}>
+          <Text
+            style={[styles.normal, styles.state]}
+          >{`${data.state}, ${data.statecode}`}</Text>
+          <Text
+            style={[styles.normal, styles.total]}
+          >{`Total Cases : ${data.confirmed}`}</Text>
+          <Text
+            style={[styles.normal, styles.death]}
+          >{`Deaths : ${data.deaths}`}</Text>
+          <Text
+            style={[styles.normal, styles.recovered]}
+          >{`Recovered : ${data.recovered}`}</Text>
+          <Text
+            style={[styles.normal, styles.active]}
+          >{`Active Cases : ${data.active}`}</Text>
+          <Text
+            style={[styles.normal, styles.update]}
+          >{`Last Updated : ${data.lastupdatedtime}`}</Text>
+          <Text style={styles.normal}>{`${data.statenotes}`}</Text>
+        </View>
+      ) : null}
+    </ScrollView>
+  );
+};
+
+export default Covid;
